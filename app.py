@@ -102,7 +102,7 @@ def main():
             st.write("No history found.")
 
     # MAIN CONTENT: Tabs for Manual vs Automated
-    tab_manual, tab_auto = st.tabs(["🤖 Option: Automated Alerts", "⚡ Option: Manual Research"])
+    tab_auto, tab_manual = st.tabs(["🤖 Option: Automated Alerts", "⚡ Option: Manual Research"])
 
     with tab_auto:
         st.subheader("Configure Background Monitoring")
