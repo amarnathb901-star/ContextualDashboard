@@ -9,20 +9,71 @@ from dotenv import load_dotenv
 
 import streamlit as st
 
+import streamlit as st
+
+def main_interface():
+    st.title("🛡️ Contextual Intelligence Dashboard")
+    st.markdown("---")
+
+    # Creating two distinct options for the user
+    option_manual, option_automated = st.tabs(["⚡ Option: Manual Research", "🤖 Option: Automated Alerts"])
+
+    # --- MANUAL OPTION ---
+    with option_manual:
+        st.subheader("Run Instant Strategic Analysis")
+        st.info("Use this for one-time deep dives into a specific project roadmap.")
+        
+        with st.container(border=True):
+            project_context = st.text_area(
+                "What project roadmap are you tracking?", 
+                placeholder="e.g., Expanding our Fintech app to the EU market...",
+                key="manual_input"
+            )
+            if st.button("Generate Strategic Update", type="primary"):
+                # Your existing research logic here
+                st.write("Running manual research...")
+
+    # --- AUTOMATED OPTION ---
+    with option_automated:
+        st.subheader("Configure Background Automation")
+        st.info("Set up recurring alerts for specific topics. Results are saved to your history.")
+        
+        with st.container(border=True):
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                topic_to_track = st.text_input(
+                    "What topic should I track?", 
+                    placeholder="e.g., Anthropic latest news",
+                    key="auto_input"
+                )
+            with col2:
+                alert_freq = st.selectbox("Frequency", ["Hourly", "Daily", "Weekly"])
+            
+            if st.form_submit_button("Start Tracking") if 'form' in globals() else st.button("Activate Automation"):
+                # Your existing SQLite saving logic here
+                st.success(f"Automation active: Tracking '{topic_to_track}' {alert_freq.lower()}.")
+
+    # --- TOPIC MANAGEMENT (HISTORY) ---
+    st.markdown("---")
+    topic_management_interface() # The function we wrote earlier for deleting/pausing
+
 def topic_management_interface():
-    st.title("🎯 Research Topic Manager")
+    st.divider() # Adds a visual line to separate sections
+    st.header("🎯 Topic Management")
     
-    # 1. Add New Topic
-    with st.expander("➕ Add New Research Topic"):
-        with st.form("new_topic"):
-            name = st.text_input("Topic Name (e.g., Anthropic, OpenAI)")
-            freq = st.selectbox("Alert Frequency", ["Hourly", "Daily"])
-            if st.form_submit_button("Start Tracking"):
-                conn = sqlite3.connect('research.db')
-                conn.execute("INSERT OR IGNORE INTO topics (topic_name, frequency) VALUES (?, ?)", (name, freq))
-                conn.commit()
-                conn.close()
-                st.rerun()
+    # Form to add new topics
+    with st.form("new_topic_form", clear_on_submit=True):
+        topic_name = st.text_input("What topic should I track?")
+        frequency = st.selectbox("Alert Frequency", ["Hourly", "Daily", "Weekly"])
+        if st.form_submit_button("Start Tracking"):
+            conn = sqlite3.connect('research.db')
+            conn.execute("INSERT OR IGNORE INTO topics (topic_name, frequency) VALUES (?, ?)", 
+                         (topic_name, frequency))
+            conn.commit()
+            conn.close()
+            st.success(f"Now tracking {topic_name}!")
+            st.rerun() # Refreshes UI to show new topic
+
 
     # 2. List and Modify Topics
     st.subheader("Current Subscriptions")
@@ -218,3 +269,12 @@ with st.form("new_topic_form"):
     if st.form_submit_button("Start Tracking"):
         # Code to save to SQLite...
         st.success(f"Tracking {topic_name} every {frequency}!")
+
+# At the bottom of your script
+if __name__ == "__main__":
+    init_db() # Ensure tables exist
+    
+    # Your existing main app code here...
+    
+    # ADD THIS LINE:
+    topic_management_interface()
