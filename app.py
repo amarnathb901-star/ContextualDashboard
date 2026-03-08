@@ -102,7 +102,7 @@ def main():
             st.write("No history found.")
 
     # MAIN CONTENT: Tabs for Manual vs Automated
-    tab_manual, tab_auto = st.tabs(["⚡ Option: Manual Research", "🤖 Option: Automated Alerts"])
+    tab_manual, tab_auto = st.tabs(["🤖 Option: Automated Alerts", "⚡ Option: Manual Research"])
 
     with tab_manual:
         st.subheader("Run Instant Strategic Analysis")
