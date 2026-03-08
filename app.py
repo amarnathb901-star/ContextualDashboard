@@ -124,7 +124,7 @@ def main():
                 else:
                     st.warning("Please enter a topic.")
 
-   with tab_manual:
+    with tab_manual:
         st.subheader("Run Instant Strategic Analysis")
         with st.form("manual_form"):
             project_context = st.text_area("What project roadmap are you tracking?", 
