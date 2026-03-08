@@ -104,23 +104,6 @@ def main():
     # MAIN CONTENT: Tabs for Manual vs Automated
     tab_manual, tab_auto = st.tabs(["🤖 Option: Automated Alerts", "⚡ Option: Manual Research"])
 
-    with tab_manual:
-        st.subheader("Run Instant Strategic Analysis")
-        with st.form("manual_form"):
-            project_context = st.text_area("What project roadmap are you tracking?", 
-                                         placeholder="e.g., Expanding our Fintech app to the EU market.")
-            submit_manual = st.form_submit_button("Generate Strategic Update", type="primary")
-            
-            if submit_manual:
-                if project_context:
-                    with st.spinner("Analyzing signals..."):
-                        report = run_research(project_context)
-                        save_signal(project_context, report)
-                        st.success("New Signal Identified!")
-                        st.markdown(report)
-                else:
-                    st.warning("Please enter context.")
-
     with tab_auto:
         st.subheader("Configure Background Monitoring")
         st.info("Set a topic here to be tracked by the background Cron job.")
@@ -141,6 +124,24 @@ def main():
                 else:
                     st.warning("Please enter a topic.")
 
+   with tab_manual:
+        st.subheader("Run Instant Strategic Analysis")
+        with st.form("manual_form"):
+            project_context = st.text_area("What project roadmap are you tracking?", 
+                                         placeholder="e.g., Expanding our Fintech app to the EU market.")
+            submit_manual = st.form_submit_button("Generate Strategic Update", type="primary")
+            
+            if submit_manual:
+                if project_context:
+                    with st.spinner("Analyzing signals..."):
+                        report = run_research(project_context)
+                        save_signal(project_context, report)
+                        st.success("New Signal Identified!")
+                        st.markdown(report)
+                else:
+                    st.warning("Please enter context.")
+
+ 
     # Persistent Management UI at the bottom
     topic_management_section()
 
