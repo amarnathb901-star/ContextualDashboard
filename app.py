@@ -208,3 +208,13 @@ if st.button("Generate Strategic Update"):
             save_signal(project_context, report) # From your Hour 3 code
             st.success("New Signal Identified!")
             st.markdown(report)
+
+# Inside your streamlit app script
+with st.form("new_topic_form"):
+    topic_name = st.text_input("What topic should I track?")
+    # THIS IS THE MISSING OPTION:
+    frequency = st.selectbox("How often should I alert you?", ["Hourly", "Daily", "Weekly"])
+    
+    if st.form_submit_button("Start Tracking"):
+        # Code to save to SQLite...
+        st.success(f"Tracking {topic_name} every {frequency}!")
