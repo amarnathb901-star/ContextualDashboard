@@ -7,6 +7,48 @@ from langchain_tavily import TavilySearch  # The new package
 import streamlit as st
 from dotenv import load_dotenv
 
+import streamlit as st
+
+def topic_management_interface():
+    st.title("🎯 Research Topic Manager")
+    
+    # 1. Add New Topic
+    with st.expander("➕ Add New Research Topic"):
+        with st.form("new_topic"):
+            name = st.text_input("Topic Name (e.g., Anthropic, OpenAI)")
+            freq = st.selectbox("Alert Frequency", ["Hourly", "Daily"])
+            if st.form_submit_button("Start Tracking"):
+                conn = sqlite3.connect('research.db')
+                conn.execute("INSERT OR IGNORE INTO topics (topic_name, frequency) VALUES (?, ?)", (name, freq))
+                conn.commit()
+                conn.close()
+                st.rerun()
+
+    # 2. List and Modify Topics
+    st.subheader("Current Subscriptions")
+    conn = sqlite3.connect('research.db')
+    topics = conn.execute("SELECT id, topic_name, frequency, is_active FROM topics").fetchall()
+    
+    for t_id, t_name, t_freq, t_active in topics:
+        col1, col2, col3 = st.columns([3, 2, 1])
+        with col1:
+            st.write(f"**{t_name}** ({t_freq})")
+        with col2:
+            # Toggle Active Status
+            status_label = "✅ Active" if t_active else "🚫 Paused"
+            if st.button(f"{status_label} (Toggle)", key=f"status_{t_id}"):
+                new_status = 0 if t_active else 1
+                conn.execute("UPDATE topics SET is_active = ? WHERE id = ?", (new_status, t_id))
+                conn.commit()
+                st.rerun()
+        with col3:
+            # Delete Topic
+            if st.button("🗑️", key=f"del_{t_id}"):
+                conn.execute("DELETE FROM topics WHERE id = ?", (t_id,))
+                conn.commit()
+                st.rerun()
+    conn.close()
+
 # 1. Load your keys FIRST
 load_dotenv()
 
@@ -33,16 +75,7 @@ from langchain_tavily import TavilySearch
 search = TavilySearch(max_results=3)
 
 SYSTEM_PROMPT = """
-You are an expert Product Management Consultant. 
-Your task is to analyze raw news data in the context of a specific user project.
-
-<instructions>
-1. Identify the 'Signal': What actually happened?
-2. Determine the 'Impact': How does this change the user's project roadmap or strategy?
-3. Suggest a 'Next Step': Give one concrete action the user should take today.
-4. Be concise and professional. Use Markdown for formatting.
-</instructions>
-"""
+Research the latest news for {topic_name}. The previous reports contained: {last_3_signals}. Identify only new and unique updates worth noting. If no significant new information is found, return 'No new updates.' Formulate the response as a PM Impact Report."""
 
 def run_research(project_context):
     # Execute the live web search
@@ -59,12 +92,18 @@ print(run_research("CTV ads"))
 
 
 def init_db():
-    conn = sqlite3.connect('project_signals.db')
-    # Create a table to store your project details and the AI's impact report
-    conn.execute('''CREATE TABLE IF NOT EXISTS reports 
-                 (id INTEGER PRIMARY KEY, project TEXT, report TEXT, date DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+    conn = sqlite3.connect('research.db')
+    # Table for research topics and their alert frequency
+    conn.execute('''CREATE TABLE IF NOT EXISTS topics 
+                 (id INTEGER PRIMARY KEY, 
+                  topic_name TEXT UNIQUE, 
+                  frequency TEXT, 
+                  is_active INTEGER DEFAULT 1)''')
+    # Existing table for signals
+    conn.execute('''CREATE TABLE IF NOT EXISTS signals 
+                 (id INTEGER PRIMARY KEY, project TEXT, report TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
-    conn.close()
+    conn.close() 
 
 def save_report(project_name, ai_report):
     conn = sqlite3.connect('project_signals.db')
@@ -77,6 +116,41 @@ def save_signal(project, report):
     # Use 'signals' as the table name to match your get_history function
     conn.execute('INSERT INTO signals (project, report) VALUES (?, ?)', (project, report))
     conn.commit()
+    conn.close()
+
+def manage_topics():
+    st.header("🎯 Topic Management")
+    
+    # Input for new topic
+    with st.form("add_topic_form"):
+        new_topic = st.text_input("New Research Topic")
+        freq = st.selectbox("Alert Frequency", ["Hourly", "Daily", "Weekly"])
+        if st.form_submit_button("Add Topic"):
+            conn = sqlite3.connect('research.db')
+            conn.execute("INSERT OR IGNORE INTO topics (topic_name, frequency) VALUES (?, ?)", (new_topic, freq))
+            conn.commit()
+            st.success(f"Added: {new_topic}")
+
+    # Display and Manage existing topics
+    conn = sqlite3.connect('research.db')
+    topics = conn.execute("SELECT id, topic_name, frequency, is_active FROM topics").fetchall()
+    
+    for t_id, t_name, t_freq, t_active in topics:
+        col1, col2, col3 = st.columns([3, 1, 1])
+        with col1:
+            st.write(f"**{t_name}** ({t_freq})")
+        with col2:
+            # Toggle Active Status
+            if st.button("Discontinue" if t_active else "Resume", key=f"tog_{t_id}"):
+                conn.execute("UPDATE topics SET is_active = ? WHERE id = ?", (0 if t_active else 1, t_id))
+                conn.commit()
+                st.rerun()
+        with col3:
+            # Delete Topic
+            if st.button("🗑️", key=f"del_{t_id}"):
+                conn.execute("DELETE FROM topics WHERE id = ?", (t_id,))
+                conn.commit()
+                st.rerun()
     conn.close()
 
 # Initialize the DB at the start of your script
