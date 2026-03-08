@@ -26,7 +26,7 @@ def main_interface():
         with st.container(border=True):
             project_context = st.text_area(
                 "What project roadmap are you tracking?", 
-                placeholder="e.g., Expanding our Fintech app to the EU market...",
+                placeholder="e.g., Implementing campaign Automated workflow Management...",
                 key="manual_input"
             )
             if st.button("Generate Strategic Update", type="primary"):
@@ -62,7 +62,7 @@ def topic_management_interface():
     st.header("🎯 Topic Management")
     
     # Form to add new topics
-    with st.form("new_topic_form", clear_on_submit=True):
+    with st.form("automation_settings_form", clear_on_submit=True):
         topic_name = st.text_input("What topic should I track?")
         frequency = st.selectbox("Alert Frequency", ["Hourly", "Daily", "Weekly"])
         if st.form_submit_button("Start Tracking"):
