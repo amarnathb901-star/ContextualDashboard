@@ -41,7 +41,7 @@ def generate_pdf(data):
 def send_slack_notification(topic, report_text):
     client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
     channel_id = "D0AK9R53FP0" # Ensure your bot is invited to this ID
-    app_url = "https://your-app-url.streamlit.app"
+    app_url = "https://contextualdashboard.streamlit.app"
 
     blocks = [
         {
