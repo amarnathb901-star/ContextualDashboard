@@ -263,7 +263,7 @@ def main():
         history = get_history()
         if history:
             pdf_data = generate_pdf(history)
-             st.download_button(
+            st.download_button(
                  label="📥 Download Reports as PDF",
                  data=pdf_data,
                  file_name="strategic_signals_report.pdf",
