@@ -7,3 +7,4 @@ faiss-cpu
 langchain-huggingface
 sentence-transformers
 fpdf
+slack_sdk

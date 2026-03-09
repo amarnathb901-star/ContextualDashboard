@@ -10,6 +10,74 @@ from fpdf import FPDF
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+
+def send_slack_notification(topic, report_text):
+    """Sends a rich Slack message with a 'Open in Dashboard' button."""
+    client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+    channel_id = "bot-updates" 
+    # Use your actual deployed Streamlit URL here
+    app_url = "https://your-contextual-dashboard.streamlit.app" 
+
+    # Constructing the Block Kit layout
+    blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": "📡 New Market Signal Detected",
+                "emoji": True
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Topic:* {topic}\n*Status:* Action Required"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"{report_text[:2500]}..." # Truncate for Slack safety
+            }
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "🌐 Open in Dashboard",
+                        "emoji": True
+                    },
+                    "style": "primary",
+                    "url": app_url,
+                    "action_id": "button_click"
+                }
+            ]
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"Generated on: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+                }
+            ]
+        }
+    ]
+
+    try:
+        client.chat_postMessage(channel=channel_id, blocks=blocks, text=f"Update for {topic}")
+    except SlackApiError as e:
+        print(f"Error sending to Slack: {e.response['error']}")
+
+
 def send_slack_notification(topic, report_text):
     client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
     channel_id = "bot-updates" # Or your specific channel name
@@ -101,7 +169,7 @@ def send_slack_notification(topic, report_text):
         print(f"✅ Rich Slack message sent for {topic}")
     except SlackApiError as e:
         print(f"❌ Slack Error: {e.response['error']}")
-        
+
 def save_signal(project, report):
     conn = sqlite3.connect('research.db')
     conn.execute('INSERT INTO signals (project, report) VALUES (?, ?)', (project, report))
