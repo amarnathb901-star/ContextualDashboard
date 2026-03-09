@@ -19,25 +19,23 @@ st.set_page_config(page_title="PM Contextual Signal", layout="wide")
 def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 16)
+    pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 10, "Strategic Intelligence Report", ln=True, align='C')
     pdf.ln(10)
     
+    pdf.set_font("Arial", size=12)
     for project, report, date in data:
-        # Header for each signal
-        pdf.set_font("Helvetica", "B", 12)
-        header_text = f"Topic: {project} | Date: {date[:10]}"
-        # Encode with 'replace' to avoid UnicodeEncodeError
-        pdf.multi_cell(0, 10, header_text.encode('latin-1', 'replace').decode('latin-1'))
-        
-        # Body of the report
-        pdf.set_font("Helvetica", size=10)
+        pdf.set_font("Arial", "B", 12)
+        pdf.multi_cell(0, 10, f"Topic: {project} ({date[:10]})")
+        pdf.set_font("Arial", size=10)
+        # Clean special characters that latin-1 can't handle
         clean_report = report.encode('latin-1', 'replace').decode('latin-1')
         pdf.multi_cell(0, 5, clean_report)
         pdf.ln(5)
     
-    # Return as bytes
-    return pdf.output(dest='S')
+    # CRITICAL FIX: Return as encoded bytes
+    pdf_string = pdf.output(dest='S')
+    return pdf_string.encode('latin-1')
 
 # UNIFIED SLACK NOTIFICATION
 def send_slack_notification(topic, report_text):
