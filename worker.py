@@ -1,6 +1,8 @@
 import os
 import sqlite3
 import time
+import datetime
+
 from dotenv import load_dotenv
 
 # AI & Search Imports
@@ -82,7 +84,7 @@ def send_slack_notification(topic, report_text):
     except SlackApiError as e:
         print(f"Error sending to Slack: {e.response['error']}")
 
-        
+
 # 1. SETUP
 load_dotenv()
 client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
@@ -110,7 +112,31 @@ def send_slack_notification(topic, report_text):
     except SlackApiError as e:
         print(f"Slack Error: {e.response['error']}")
 
+
 def run_worker():
+    # 1. Start Heartbeat
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n💓 [HEARTBEAT] Worker started at {now}")
+    print("-----------------------------------------")
+
+    conn = sqlite3.connect('/Users/appit2015140/Documents/Courses/GenAI/ContextualDashboard/research.db')
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT topic_name FROM topics WHERE is_active = 1")
+    active_topics = cursor.fetchall()
+
+    if not active_topics:
+        # Log that the worker ran but had no work to do
+        print(f"💤 Still alive, but no active topics found at {now}.")
+        conn.close()
+        return
+
+    # ... [Your existing research logic] ...
+
+    # 2. End Heartbeat
+    print(f"🏁 [FINISHED] Worker execution completed at {datetime.datetime.now().strftime('%H:%M:%S')}")
+    conn.close()
+
     print("🤖 Worker started: Checking for updates...")
     conn = sqlite3.connect('research.db')
     cursor = conn.cursor()

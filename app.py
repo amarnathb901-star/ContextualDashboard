@@ -131,6 +131,34 @@ def topic_management_section():
                     st.rerun()
     conn.close()
 
+def worker_status_sidebar():
+    st.sidebar.divider()
+    st.sidebar.subheader("🤖 Worker Status")
+    
+    log_path = "/Users/appit2015140/Documents/Courses/GenAI/ContextualDashboard/worker_log.txt"
+    
+    if os.path.exists(log_path):
+        with open(log_path, "r") as f:
+            # Read the last 5 lines to find the latest heartbeat
+            lines = f.readlines()[-10:]
+            latest_log = "".join(lines)
+            
+            if "💓 [HEARTBEAT]" in latest_log:
+                st.sidebar.success("✅ Background Worker: Active")
+                # Extract the timestamp from the heartbeat line
+                for line in reversed(lines):
+                    if "💓 [HEARTBEAT]" in line:
+                        st.sidebar.caption(f"Last Run: {line.split('at')[-1].strip()}")
+                        break
+            else:
+                st.sidebar.warning("⚠️ Worker status unknown")
+                
+        if st.sidebar.button("🔍 View Detailed Logs"):
+            st.code(latest_log)
+    else:
+        st.sidebar.error("❌ No log file found. Check Cron job.")
+
+
 def main():
     init_db()
     st.title("📡 Contextual Intelligence Dashboard")
@@ -182,6 +210,7 @@ def main():
                 st.warning("Enter context.")
 
     topic_management_section()
+    worker_status_sidebar()
 
 if __name__ == "__main__":
     main()
