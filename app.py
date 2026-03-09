@@ -6,6 +6,22 @@ from langchain_anthropic import ChatAnthropic
 from langchain_tavily import TavilySearch
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
+from fpdf import FPDF
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+
+def send_slack_notification(topic, report_text):
+    client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+    channel_id = "bot-updates" # Or your specific channel name
+
+    # Format the message for better readability in Slack
+    slack_message = f"*🚨 New Strategic Signal: {topic}*\n\n{report_text}"
+
+    try:
+        client.chat_postMessage(channel=channel_id, text=slack_message)
+        print(f"✅ Slack message sent for {topic}")
+    except SlackApiError as e:
+        print(f"❌ Slack Error: {e.response['error']}")
 
 # 1. INITIAL SETUP & DATABASE
 load_dotenv()
@@ -25,6 +41,67 @@ def init_db():
     conn.commit()
     conn.close()
 
+def generate_pdf(data):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(40, 10, "Strategic Intelligence Report")
+    pdf.ln(10)
+    
+    pdf.set_font("Arial", size=12)
+    for project, report, date in data:
+        pdf.set_font("Arial", "B", 12)
+        pdf.multi_cell(0, 10, f"Topic: {project} ({date[:10]})")
+        pdf.set_font("Arial", size=10)
+        pdf.multi_cell(0, 5, report)
+        pdf.ln(5)
+    
+    return pdf.output(dest='S').encode('latin-1')
+
+
+def send_slack_notification(topic, report_text):
+    client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+    channel_id = "bot-updates"
+    app_url = "https://your-app-url.streamlit.app" # Replace with your actual URL
+
+    # Define the rich layout using Slack Blocks
+    blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*🚨 New Strategic Signal: {topic}*"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": report_text[:3000] # Slack has a 3000 char limit per block
+            }
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "🌐 Open in Dashboard"
+                    },
+                    "url": app_url,
+                    "action_id": "open_dashboard"
+                }
+            ]
+        }
+    ]
+
+    try:
+        client.chat_postMessage(channel=channel_id, blocks=blocks, text=f"New Signal: {topic}")
+        print(f"✅ Rich Slack message sent for {topic}")
+    except SlackApiError as e:
+        print(f"❌ Slack Error: {e.response['error']}")
+        
 def save_signal(project, report):
     conn = sqlite3.connect('research.db')
     conn.execute('INSERT INTO signals (project, report) VALUES (?, ?)', (project, report))
@@ -32,6 +109,7 @@ def save_signal(project, report):
     conn.close()
     # NEW: Update the AI's long-term memory
     update_faiss_index(project, report)
+    send_slack_notification(project, report)
 
 def get_history():
     conn = sqlite3.connect('research.db')
@@ -116,6 +194,14 @@ def main():
         st.header("📜 Past Signals")
         history = get_history()
         if history:
+            pdf_data = generate_pdf(history)
+             st.download_button(
+                 label="📥 Download Reports as PDF",
+                 data=pdf_data,
+                 file_name="strategic_signals_report.pdf",
+                 mime="application/pdf"
+            )
+
             for h_project, h_report, h_date in history:
                 with st.expander(f"{h_date[:10]}: {h_project[:20]}..."):
                     st.write(h_report)
