@@ -1,0 +1,6 @@
+#!/Users/appit2015140/Documents/Courses/GenAI/ContextualDashboard/faiss_env/bin/python3.11
+import sys
+from nbformat.sign import TrustNotebookApp
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(TrustNotebookApp.launch_instance())

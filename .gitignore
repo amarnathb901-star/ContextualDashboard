@@ -1,7 +1,6 @@
-# Ignore the virtual environment (huge folder)
-faiss_env/
-__pycache__/
-
-# Ignore sensitive keys and local databases
 .env
-*.db
+research.db
+faiss_index/
+worker_log.txt
+__pycache__/
+.DS_Store

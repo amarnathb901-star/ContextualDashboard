@@ -14,7 +14,7 @@ from slack_sdk.errors import SlackApiError
 def send_slack_notification(topic, report_text):
     """Sends a rich Slack message with a 'Open in Dashboard' button."""
     client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
-    channel_id = "bot-updates" 
+    channel_id = "D0AK9R53FP0" 
     # Use your actual deployed Streamlit URL here
     app_url = "https://your-contextual-dashboard.streamlit.app" 
 
@@ -80,7 +80,7 @@ def send_slack_notification(topic, report_text):
 
 def send_slack_notification(topic, report_text):
     client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
-    channel_id = "bot-updates" # Or your specific channel name
+    channel_id = "D0AK9R53FP0" # Or your specific channel name
 
     # Format the message for better readability in Slack
     slack_message = f"*🚨 New Strategic Signal: {topic}*\n\n{report_text}"
@@ -129,7 +129,7 @@ def generate_pdf(data):
 
 def send_slack_notification(topic, report_text):
     client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
-    channel_id = "bot-updates"
+    channel_id = "D0AK9R53FP0"
     app_url = "https://your-app-url.streamlit.app" # Replace with your actual URL
 
     # Define the rich layout using Slack Blocks

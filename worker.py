@@ -19,7 +19,7 @@ from slack_sdk.errors import SlackApiError
 def send_slack_notification(topic, report_text):
     """Sends a rich Slack message with a 'Open in Dashboard' button."""
     client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
-    channel_id = "bot-updates" 
+    channel_id = "D0AK9R53FP0" 
     # Use your actual deployed Streamlit URL here
     app_url = "https://your-contextual-dashboard.streamlit.app" 
 
@@ -90,7 +90,7 @@ embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 def send_slack_notification(topic, report_text):
     """Sends a formatted Slack message with a button to the dashboard."""
-    channel_id = "bot-updates" # Ensure your bot is invited to this channel
+    channel_id = "D0AK9R53FP0" # Ensure your bot is invited to this channel
     app_url = "https://your-app-url.streamlit.app" 
 
     blocks = [
