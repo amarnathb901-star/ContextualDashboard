@@ -4,3 +4,5 @@ langchain-tavily
 langchain-community
 python-dotenv
 faiss-cpu
+langchain-huggingface
+sentence-transformers

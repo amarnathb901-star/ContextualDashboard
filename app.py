@@ -4,6 +4,8 @@ import streamlit as st
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_tavily import TavilySearch
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
 
 # 1. INITIAL SETUP & DATABASE
 load_dotenv()
@@ -28,6 +30,8 @@ def save_signal(project, report):
     conn.execute('INSERT INTO signals (project, report) VALUES (?, ?)', (project, report))
     conn.commit()
     conn.close()
+    # NEW: Update the AI's long-term memory
+    update_faiss_index(project, report)
 
 def get_history():
     conn = sqlite3.connect('research.db')
@@ -83,6 +87,23 @@ def topic_management_section():
                     conn.commit()
                     st.rerun()
     conn.close()
+
+def update_faiss_index(topic, report):
+    # 1. Initialize the embedding model (converts text to math)
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    
+    # 2. Check if a local index already exists
+    if os.path.exists("faiss_index"):
+        vectorstore = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+        # Add the new report to the existing "memory"
+        vectorstore.add_texts([report], metadatas=[{"topic": topic}])
+    else:
+        # Create a brand new index if this is the first signal
+        vectorstore = FAISS.from_texts([report], embeddings, metadatas=[{"topic": topic}])
+    
+    # 3. Save the updated index back to your folder
+    vectorstore.save_local("faiss_index")
+    print(f"✅ FAISS index updated for: {topic}")
 
 # 4. MAIN APP INTERFACE
 def main():
